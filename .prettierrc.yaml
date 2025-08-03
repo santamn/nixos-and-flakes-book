@@ -2,5 +2,5 @@
 semi: false
 singleQuote: false
 printWidth: 90
-proseWrap: always # always change wrapping in markdown text
+proseWrap: preserve
 trailingComma: es5
