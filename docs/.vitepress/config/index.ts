@@ -1,8 +1,8 @@
-import { defineConfig } from 'vitepress'
-import { shared } from './shared'
-import { en } from './en'
-import { zh } from './zh'
-
+import { defineConfig } from "vitepress"
+import { shared } from "./shared"
+import { en } from "./en"
+import { zh } from "./zh"
+import { ja } from "./ja"
 
 export default defineConfig({
   ...shared,
@@ -12,13 +12,17 @@ export default defineConfig({
     "en/:rest*": ":rest*",
   },
   locales: {
-    root: { 
-      label: 'English',
-      ...en 
+    root: {
+      label: "English",
+      ...en,
     },
     zh: {
-      label: '简体中文', 
-      ...zh
+      label: "简体中文",
+      ...zh,
+    },
+    ja: {
+      label: "日本語",
+      ...ja,
     },
   },
 
@@ -37,14 +41,13 @@ export default defineConfig({
   //   },
   //
   //   // Languages maintained by the original author
-  //   en: { 
+  //   en: {
   //     label: 'English',
   //   link: "https://nixos-and-flakes.thiscute.world/",
   //   },
   //   zh: {
-  //     label: '简体中文', 
+  //     label: '简体中文',
   //     link: "https://nixos-and-flakes.thiscute.world/zh/",
   //   },
   // },
 })
-
