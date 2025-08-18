@@ -150,7 +150,7 @@ export const ja = defineConfig({
             link: "/ja/other-usage-of-flakes/outputs.md",
           },
           {
-            text: "新世代の CLI",
+            text: "新 CLIの使い方",
             link: "/ja/other-usage-of-flakes/the-new-cli.md",
           },
           {
