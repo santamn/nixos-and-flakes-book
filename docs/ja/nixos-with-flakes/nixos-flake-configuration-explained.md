@@ -4,7 +4,7 @@
 
 ## 1. Flake Inputs
 
-まず、`inputs` 属性について見てみましょう。`inputs` とは flake のすべての依存関係を定義する attribute set であり、ここに書かれた依存は取得されると `outputs` 関数の引数として渡されます:
+まず、`inputs` attribute について見てみましょう。`inputs` とは flake のすべての依存関係を定義する attribute set であり、ここに書かれた依存は取得されると `outputs` 関数の引数として渡されます:
 
 ```nix{2-5,7}
 {
