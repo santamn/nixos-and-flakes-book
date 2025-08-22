@@ -14,7 +14,7 @@ export const ja = defineConfig({
     sidebar: [
       {
         text: "はじめに",
-        items: [{ text: "はじめに", link: "/ja/preface.md" }],
+        items: [{ text: "まえがき", link: "/ja/preface.md" }],
       },
       {
         text: "スタートガイド",
@@ -58,7 +58,7 @@ export const ja = defineConfig({
             link: "/ja/nixos-with-flakes/nixos-flake-and-module-system.md",
           },
           {
-            text: "Home Manager を始める",
+            text: "Home Manager 入門",
             link: "/ja/nixos-with-flakes/start-using-home-manager.md",
           },
           {
