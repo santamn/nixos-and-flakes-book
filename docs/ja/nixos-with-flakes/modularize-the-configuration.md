@@ -1,6 +1,6 @@
-# NixOS設定のモジュール化 {#modularize-nixos-configuration}
+# 設定のモジュール化 {#modularize-nixos-configuration}
 
-ここまでで、システム全体の骨格はほぼ設定完了です。現在の`/etc/nixos`内のシステム設定構造は次のようになっているはずです：
+ここまででシステムの骨組みについてはほぼ設定完了です。現在の `/etc/nixos` 内のシステム設定の構造は次のようになっているはずです:
 
 ```
 $ tree
@@ -11,44 +11,73 @@ $ tree
 └── configuration.nix
 ```
 
-以下に、これら4つのファイルの機能をそれぞれ説明します：
+これら4つのファイルの機能はそれぞれ次のとおりです:
 
-- `flake.lock`: 自動生成されるバージョンロックファイルで、flake全体のすべての入力データソース、ハッシュ値、バージョン番号を記録し、システムの再現性を保証します。
-- `flake.nix`: flakeのエントリポイントファイルで、`sudo nixos-rebuild switch`を実行すると認識され、デプロイされます。
-- `configuration.nix`: flake.nixでシステムモジュールとしてインポートされ、現在すべてのシステムレベルの設定がこのファイルに記述されています。
-  - この設定ファイルのすべてのオプションについては、公式ドキュメント[Configuration - NixOS Manual](https://nixos.org/manual/nixos/unstable/index.html#ch-configuration)を参照してください。
-- `home.nix`: flake.nixでhome-managerによってryanユーザーの設定としてインポートされます。つまり、ryanというユーザーのすべてのHome Manager設定が含まれており、そのホームフォルダを管理します。
-  - この設定ファイルのすべてのオプションについては、[Appendix A. Configuration Options - Home Manager](https://nix-community.github.io/home-manager/options.xhtml)を参照してください。
+- `flake.lock`: 自動で生成されるバージョンロック用ファイル。flake 全体のすべての入力データソース、ハッシュ値、バージョン番号を記録し、システムの再現性を担保します。
+- `flake.nix`: flake のエントリポイントファイル。`sudo nixos-rebuild switch` を実行すると認識され、デプロイされます。
+  - `flake.nix` の全てのオプションについては [Flakes - NixOS Wiki](https://wiki.nixos.org/wiki/Flakes) を参照してください。
+- `configuration.nix`: 現段階ではすべてのシステムレベルの設定が書かれているファイルで、`flake.nix` で Nix モジュールとしてインポートされています。
+  - `configuration.nix` の全てのオプションについては [Configuration - NixOS Manual](https://nixos.org/manual/nixos/unstable/index.html#ch-configuration) を参照してください。
+- `home.nix`: `flake.nix` で Home Manager によって `ryan` ユーザーの設定としてインポートされ、`ryan` の全ての設定とホームディレクトリを管理しています。
+  - `home.nix` のすべてのオプションについては [Appendix A. Configuration Options - Home Manager](https://nix-community.github.io/home-manager/options.xhtml) を参照してください。
 
-上記の設定ファイルを変更することで、システムとホームディレクトリの状態を変更できます。しかし、設定が増えるにつれて、`configuration.nix`と`home.nix`だけに頼っていると、設定ファイルが肥大化し、メンテナンスが困難になります。より良い解決策は、Nixのモジュールメカニズムを使用して、設定ファイルを複数のモジュールに分割し、分類して記述・メンテナンスすることです。
+これらの設定ファイルを変更することで、システムとホームディレクトリの状態を宣言的に変更できます。しかし、`configuration.nix` と `home.nix` だけに頼っていると、設定が増えるにつれて設定ファイルが肥大化し、メンテナンスが困難になります。この問題の解決策は、Nix モジュールを使って設定ファイルを複数のモジュールに分割し、体系的に管理することです。
 
-Nix言語は[`import`関数](https://nix.dev/tutorials/nix-language.html#import)を提供しており、これには特別なルールがあります：
+Nix 言語は [`import`関数](https://nix.dev/tutorials/nix-language.html#import) を提供しており、これには特別なルールがあります:
 
-> `import`の引数がフォルダパスの場合、そのフォルダ内の`default.nix`ファイルの実行結果を返します。
+> `import` の引数がフォルダパスの場合、`import` 関数はそのフォルダ内の `default.nix` の実行結果を返します。
 
-Nixpkgsモジュールシステムは、それに似た`imports`パラメータを提供しており、`.nix`ファイルのリストを受け取り、そのリスト内のすべての設定を現在の属性セットに**マージ**（Merge）します。
+Nixpkgs モジュールシステムは、これと似た `imports` パラメータを提供しており、これは `.nix` ファイルのリストを受け取って、そのリスト内のすべての設定を現在の Nix モジュールに**マージ**するものです。
 
-ここでの言葉遣いは「**マージ**」であることに注意してください。これは、`imports`が重複する設定項目に遭遇した場合、実行順に単純に上書きするのではなく、より合理的に処理することを示しています。例えば、複数のモジュールで`program.packages = [...]`を定義した場合、`imports`はすべてのモジュール内の`program.packages`というリストをマージします。リストだけでなく、属性セットも正しくマージできます。具体的な動作は、読者の皆様で探求してみてください。
+ここで、`imports` が単に重複する設定項目を上書きするのではなく、より合理的に処理するということに留意してください。例えば、複数のモジュールで `program.packages = [...]` が定義されている場合、`imports` はすべての Nix モジュールで定義された `program.packages` を1つのリストにマージします。リストだけでなく、attribute set も同様に正しくマージされます。具体的な挙動についてはご自身で検証してみてください。
 
-> 私は[nixpkgs-unstable公式マニュアル - evalModules parameters](https://nixos.org/manual/nixpkgs/unstable/#module-system-lib-evalModules-parameters)で`imports`に関する記述を一つだけ見つけました：`A list of modules. These are merged together to form the final configuration.`、意図を汲み取ってください...（Nixのドキュメントは本当に...こんなに重要なパラメータのドキュメントがこれだけなんて...）
+> [Nixpkgs-Unstable Official Manual - evalModules Parameters](https://nixos.org/manual/nixpkgs/unstable/#module-system-lib-evalModules-parameters) で `imports` について私が見つけた唯一の説明は次のとおりでした: `A list of modules. These are merged together to form the final configuration.` あとは察してね、ということなんでしょうか...（Nix のドキュメントは本当に...こんなに重要なパラメータのドキュメントがこれだけなんて...）
 
-`imports`パラメータを利用して、`home.nix`と`configuration.nix`を複数の`.nix`ファイルに分割することができます。
+`imports` を使用することで、`home.nix` と `configuration.nix` を複数の Nix モジュールに分割し、それぞれを異なる `.nix` ファイルに定義することが可能になります。例として、`packages.nix` モジュールを見てみましょう:
 
-モジュール化された設定の非常に良い例として、以下を参考にしてください：
+```nix
+{
+  config,
+  pkgs,
+  ...
+}: {
+  imports = [
+    (import ./special-fonts-1.nix {inherit config pkgs;}) # (1)
+    ./special-fonts-2.nix                                 # (2)
+  ];
+
+  fontconfig.enable = true;
+}
+```
+
+このモジュールは、imports セクションで `special-fonts-1.nix` と`special-fonts-2.nix` という2つの他のモジュールを読み込んでいます。これらのファイル自体もモジュールであり、以下のような構造になっています。
+
+```nix
+{ config, pkgs, ...}: {
+    # 設定項目...
+}
+```
+
+上記の2つの import 文は、同じパラメータを受け取ります:
+
+- `(1)` は `special-fonts-1.nix` 内の関数をインポートし、`{config = config; pkgs = pkgs}` という引数を渡して呼び出します。基本的には、呼び出し結果（attribute set 形式の部分的な設定）を `imports` リスト内で使用しています。
+- `(2)` ではモジュールへのパスを指定しており、Nix がシステム構成 `config` を組み立てる際にこのモジュールの関数が自動的に読み込まれます。そして、`packages.nix` の関数の引数のうち名前が一致するものはすべて、ここで読み込まれる `special-fonts-2.nix` の関数に渡されるので、結果として `import ./special-fonts-2.nix {config = config; pkgs = pkgs}` という呼び出しが行われます。
+
+設定のモジュール化を始めるにあたって優れた例をご紹介します。ぜひ参考にしてください:
 
 - [Misterio77/nix-starter-configs](https://github.com/Misterio77/nix-starter-configs)
 
-もう少し複雑な例として、以下は私が以前使用していたi3wm設定のディレクトリ構造です[ryan4yin/nix-config/i3-kickstarter](https://github.com/ryan4yin/nix-config/tree/i3-kickstarter)：
+もう少し複雑な例として、私が以前使用していた i3 ウィンドウマネージャ搭載の NixOS システムの設定 [ryan4yin/nix-config/i3-kickstarter](https://github.com/ryan4yin/nix-config/tree/i3-kickstarter) があります。以下にそのディレクトリ構造を示します:
 
 ```shell
 ├── flake.lock
 ├── flake.nix
 ├── home
-│   ├── default.nix         # ここでimports = [...]を使ってすべてのサブモジュールをインポート
-│   ├── fcitx5              # fcitx5中国語入力メソッドの設定、私はカスタムの小鶴音形入力メソッドを使用
+│   ├── default.nix         # ここで imports = [...] を使ってすべてのサブモジュールをインポート
+│   ├── fcitx5              # fcitx5 入力メソッドの設定
 │   │   ├── default.nix
 │   │   └── rime-data-flypy
-│   ├── i3                  # i3wmデスクトップ設定
+│   ├── i3                  # i3 ウィンドウマネージャの設定
 │   │   ├── config
 │   │   ├── default.nix
 │   │   ├── i3blocks.conf
@@ -57,12 +86,12 @@ Nixpkgsモジュールシステムは、それに似た`imports`パラメータ�
 │   ├── programs
 │   │   ├── browsers.nix
 │   │   ├── common.nix
-│   │   ├── default.nix   # ここでimports = [...]を使ってprogramsディレクトリ内のすべてのnixファイルをインポート
+│   │   ├── default.nix   # ここで imports = [...] を使って programs フォルダのすべてのモジュールをインポート
 │   │   ├── git.nix
 │   │   ├── media.nix
 │   │   ├── vscode.nix
 │   │   └── xdg.nix
-│   ├── rofi              #  rofiアプリケーションランチャー設定、i3wmで設定したショートカットキーでトリガー
+│   ├── rofi              #  rofi ランチャーの設定
 │   │   ├── configs
 │   │   │   ├── arc_dark_colors.rasi
 │   │   │   ├── arc_dark_transparent_colors.rasi
@@ -71,7 +100,7 @@ Nixpkgsモジュールシステムは、それに似た`imports`パラメータ�
 │   │   │   ├── rofidmenu.rasi
 │   │   │   └── rofikeyhint.rasi
 │   │   └── default.nix
-│   └── shell             # シェル端末関連の設定
+│   └── shell             # シェル・ターミナル関連の設定
 │       ├── common.nix
 │       ├── default.nix
 │       ├── nushell
@@ -81,29 +110,29 @@ Nixpkgsモジュールシステムは、それに似た`imports`パラメータ�
 │       ├── starship.nix
 │       └── terminals.nix
 ├── hosts
-│   ├── msi-rtx4090      # PCホストの設定
-│   │   ├── default.nix                 # これは以前のconfiguration.nixですが、ほとんどの内容はモジュールに分割されています
-│   │   └── hardware-configuration.nix  # システムハードウェア関連の設定、nixosインストール時に自動生成
-│   └── my-nixos       # テスト用の仮想マシン設定
+│   ├── msi-rtx4090      # メインマシンの設定
+│   │   ├── default.nix  # これは以前の configuration.nix ですが、ほとんどの内容はモジュールに分割されています
+│   │   └── hardware-configuration.nix  # NixOS インストール時に自動生成されるハードウェア・ディスク関連の設定
+│   └── my-nixos       # テスト用マシンの設定
 │       ├── default.nix
 │       └── hardware-configuration.nix
-├── modules          # configuration.nixから分割されたいくつかの共通設定
+├── modules          # 再利用可能な NixOS モジュール
 │   ├── i3.nix
 │   └── system.nix
-└── wallpaper.jpg    # デスクトップの壁紙、i3wm設定で参照
+└── wallpaper.jpg    # 壁紙
 ```
 
-Nix Flakesはディレクトリ構造に何の要件もありません。上記の例を参考に、自分に合ったディレクトリ構造を模索することができます。重要なのは、`imports`パラメータを使って他の`.nix`ファイルをインポートすることです。
+必ずしも上記の構造に従う必要はありませんので、ご自身の好みに合わせて自由に設定を整理してください。重要なのは、サブモジュールをすべてメインモジュールにインポートするために `imports` を使うということです。
 
 ## `lib.mkOverride`, `lib.mkDefault`, `lib.mkForce`
 
-Nixファイルで`lib.mkDefault`や`lib.mkForce`を使って値を定義している人を見かけるかもしれません。名前が示すように、`lib.mkDefault`と`lib.mkForce`はオプションのデフォルト値を設定したり、オプションの値を強制的に設定したりするために使用されます。
+Nix で `lib.mkDefault` や `lib.mkForce` を使って値を定義している人を見かけることがあるかもしれません。これらの名前が示すように、`lib.mkDefault` や `lib.mkForce` はオプションのデフォルト値を設定したり、オプションの値を強制的に設定したりするために使用されます。
 
-このままでは理解しにくいかもしれませんし、公式ドキュメントにもこれらの関数の詳細な説明はありません。最も直接的な理解方法は、ソースコードを見ることです。
+この説明だけでは理解しづらいかもしれません。公式ドキュメントにもこれらの関数についての詳細な解説はほとんどありません。最も手っ取り早く理解する方法は、直接ソースコードを読むことです。
 
-新しいウィンドウを開き、`nix repl -f '<nixpkgs>'`と入力してREPLインタプリタに入り、`:e lib.mkDefault`と入力すると、`lib.mkDefault`のソースコードを見ることができます（`:e`が何をするかわからない場合は、`:?`と入力してヘルプ情報を参照してください）。
+`nix repl -f '<nixpkgs>'` を実行して `:e lib.mkDefault` と入力すると、`lib.mkDefault` と `lib.mkForce` のソースコードを見ることができます。`nix repl` について知りたい場合は、`:?`と入力してヘルプ情報を参照してください。
 
-ソースコードの抜粋は以下の通りです：
+ソースコードの抜粋は以下のとおりです:
 
 ```nix
   # ......
@@ -113,22 +142,22 @@ Nixファイルで`lib.mkDefault`や`lib.mkForce`を使って値を定義して�
       inherit priority content;
     };
 
-  mkOptionDefault = mkOverride 1500; # option defaultsの優先度
-  mkDefault = mkOverride 1000; # ユーザー以外のモジュールの設定セクションでデフォルトを設定するために使用
-  mkImageMediaOverride = mkOverride 60; # image media profilesはホスト設定に含めることで派生できるため、ホスト設定を上書きする必要があるが、ユーザーがmkForceできるようにする
+  mkOptionDefault = mkOverride 1500;    # オプションのデフォルトでの優先度
+  mkDefault = mkOverride 1000;          # 非ユーザーモジュールの設定セクションでのデフォルト値
+  mkImageMediaOverride = mkOverride 60; # イメージ用の Profiles がホスト設定を上書きでき、かつユーザーが mkForce でさらに上書き可能な優先度
   mkForce = mkOverride 50;
-  mkVMOverride = mkOverride 10; # `nixos-rebuild build-vm`で使用
+  mkVMOverride = mkOverride 10;         # `nixos-rebuild build-vm`で使用
 
   # ......
 ```
 
-したがって、`lib.mkDefault`はオプションのデフォルト値を設定するために使用され、その優先度は1000です。一方、`lib.mkForce`はオプションの値を強制的に設定するために使用され、その優先度は50です。オプションの値を直接設定する場合、その優先度は1000（`lib.mkDefault`と同じ）になります。
+要約すると、内部的な優先度が1000の `lib.mkDefault` はオプションのデフォルト値を設定するために使用されるもので、内部的な優先度が50の `lib.mkForce` はオプションの値を強制的に設定するために使用されます。オプションの値を直接設定する場合、その優先度は `lib.mkDefault` と同じ1000になります。
 
-`priority`の値が低いほど、実際の優先度は高くなります。したがって、`lib.mkForce`の優先度は`lib.mkDefault`よりも高くなります。同じ優先度の値を複数定義すると、Nixはパラメータの競合があるとしてエラーを出し、手動で解決する必要があります。
+`priority` の値が低いほど、実際の優先度は高くなります。したがって、`lib.mkForce` の優先度は `lib.mkDefault` よりも高くなります。同じ優先度の値を複数定義すると、Nix はエラーを投げます。
 
-これらの関数は、NixOSの設定をモジュール化する際に非常に便利です。なぜなら、低レベルのモジュール（ベースモジュール）でデフォルト値を設定し、高レベルのモジュール（ハイレベルモジュール）でより高い優先度の値を設定できるからです。
+これらの関数は、設定をモジュール化する際に非常に便利です。なぜなら、低レベルのモジュール（ベースモジュール）でデフォルト値を設定し、高レベルのモジュールでより高い優先度の値を設定できるからです。
 
-例として、私はここでデフォルト値を定義しています：<https://github.com/ryan4yin/nix-config/blob/c515ea9/modules/nixos/core-server.nix#L32>
+例として、私はこのようにデフォルト値を定義しています: [ryan4yin/nix-config/blob/c515ea9/modules/nixos/core-server.nix](https://github.com/ryan4yin/nix-config/blob/c515ea9/modules/nixos/core-server.nix#L32)
 
 ```nix{6}
 { lib, pkgs, ... }:
@@ -142,8 +171,7 @@ Nixファイルで`lib.mkDefault`や`lib.mkForce`を使って値を定義して�
 }
 ```
 
-そして、デスクトップマシンの設定で、デフォルト値を強制的に上書きしました：
-<https://github.com/ryan4yin/nix-config/blob/c515ea9/modules/nixos/core-desktop.nix#L18>
+そして、デスクトップの設定で次のようにデフォルト値を上書きしています: [ryan4yin/nix-config/blob/c515ea9/modules/nixos/core-desktop.nix](https://github.com/ryan4yin/nix-config/blob/c515ea9/modules/nixos/core-desktop.nix#L18)
 
 ```nix{10}
 { lib, pkgs, ... }:
@@ -163,15 +191,13 @@ Nixファイルで`lib.mkDefault`や`lib.mkForce`を使って値を定義して�
 
 ## `lib.mkOrder`, `lib.mkBefore`, `lib.mkAfter`
 
-`lib.mkBefore`と`lib.mkAfter`は、**リスト型**のマージ順序を設定するために使用されます。これらは`lib.mkDefault`や`lib.mkForce`と同様に、モジュール化された設定で使用されます。
+`lib.mkDefault` と `lib.mkForce` に加えて、`lib.mkBefore` や `lib.mkAfter` は**リスト型**のオプションのマージ順序を設定するために使用されます。これらの関数を使うことで、設定のモジュール化がいっそう促進されます。
 
-> リスト型の定義に関する公式ドキュメントは見つかりませんでしたが、簡単に言うと、マージ結果がマージの順序に依存する型だと理解しています。この理解に基づくと、list型とstring型はどちらもリスト型であり、実際にこれらの関数は両方の型で使用できます。
+> リスト型のオプションに関する公式ドキュメントは見つかりませんでしたが、私はシンプルにマージ結果がマージの順序に依存する型だと理解しています。この理解に基づくと、`list` 型と `string` 型はどちらもリスト型のオプションであり、実際にこれらの関数はこの両方の型について使用できます。
 
-前述のように、同じ優先度の値を複数定義すると、Nixはパラメータの競合があるとしてエラーを出します。
+前述のように、同じ**上書き優先度**の値を複数定義すると、Nix はエラーを出します。しかし、`lib.mkOrder`, `lib.mkBefore`, `lib.mkAfter` のいずれかを使うことで同じ上書き優先度をもつ複数の値を定義できるようになり、これらは指定された順序でマージされます。
 
-しかし、**リスト型**の値を定義する場合、Nixはエラーを出しません。なぜなら、Nixは定義した複数の値を1つのリストにマージするからです。そして、`lib.mkBefore`と`lib.mkAfter`は、このリストのマージ順序を設定するために使用されます。
-
-まずソースコードを見てみましょう。ターミナルを開き、`nix repl -f '<nixpkgs>'`と入力してREPLインタプリタに入り、`:e lib.mkBefore`と入力すると、`lib.mkBefore`のソースコードを見ることができます（`:e`が何をするかわからない場合は、`:?`と入力してヘルプ情報を参照してください）。
+まずソースコードを見てみましょう。`lib.mkBefore` のソースコードを確認するには、`nix repl -f <nixpkgs>` を実行し、`:e lib.mkBefore` と入力してください。`nix repl` について知りたい場合は、`:?` と入力してヘルプ情報を参照してください:
 
 ```nix
   # ......
@@ -188,9 +214,9 @@ Nixファイルで`lib.mkDefault`や`lib.mkForce`を使って値を定義して�
   # ......
 ```
 
-`lib.mkBefore`は`lib.mkOrder 500`のエイリアスであり、`lib.mkAfter`は`lib.mkOrder 1500`のエイリアスであることがわかります。
+`lib.mkBefore` は `lib.mkOrder 500` の略記であり、`lib.mkAfter` は `lib.mkOrder 1500` の略記であることがわかります。
 
-これら2つの関数をより直感的に理解するために、テスト用のflakeを作成してみましょう：
+`lib.mkBefore` と `lib.mkAfter` の使い方を確かめるために、簡単な Flake プロジェクトを作成してみましょう。
 
 ```nix{10-38}
 # flake.nix
@@ -238,7 +264,7 @@ Nixファイルで`lib.mkDefault`や`lib.mkForce`を使って値を定義して�
 }
 ```
 
-上記の例には、複数行文字列、単一行文字列、およびリストの3つの型で`lib.mkBefore`と`lib.mkAfter`を適用する例が含まれています。結果をテストしてみましょう：
+上の flake には、複数行文字列と単一行文字列とリストについて `lib.mkBefore` と `lib.mkAfter` を適用する例が書かれています。結果をテストしてみましょう:
 
 ```bash
 # 例1：複数行文字列のマージ
@@ -270,12 +296,12 @@ echo 'insert after default';"
 
 ```
 
-ご覧のとおり、`lib.mkBefore`は後の値を前に挿入し、`lib.mkAfter`は後の値を後ろに挿入します。
+ご覧のように、`lib.mkBefore` と `lib.mkAfter` を使うことで、
+複数行文字列、単一行文字列、およびリストのマージ順序を定義できます。
 
-> モジュールシステムのより詳細な紹介については、[モジュールシステムとカスタムオプション](../other-usage-of-flakes/module-system.md)を参照してください。
+> モジュールシステムについてより詳しく知りたい場合は [モジュールシステムとカスタムオプション](../other-usage-of-flakes/module-system.md) を参照してください。
 
 ## References
 
 - [Nix modules: Improving Nix's discoverability and usability ](https://cfp.nixcon.org/nixcon2020/talk/K89WJY/)
 - [Module System - Nixpkgs](https://github.com/NixOS/nixpkgs/blob/nixos-25.05/doc/module-system/module-system.chapter.md)
-- [Misterio77/nix-starter-configs](https://github.com/Misterio77/nix-starter-configs)
