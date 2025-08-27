@@ -1,21 +1,21 @@
-# システムを更新する {#update-nixos-system}
+# システムのアップデート {#update-nixos-system}
 
-Flakesを使うと、システムの更新がとても簡単になります。`/etc/nixos`や、設定ファイルを置いている他のディレクトリで、次のコマンドを実行するだけです：
+Flakes を使うとシステムの更新がとても簡単になります。単に次のコマンドを、`/etc/nixos` または設定を保存している他のディレクトリで実行するだけです。
 
-> **注意**：`/etc/nixos`ディレクトリは`root`によって所有されており、`root`のみが書き込み可能です。そのため、もしあなたのFlakeがこのディレクトリにある場合、設定ファイルを更新するには`sudo`を使う必要があります。
+> **注意**: `/etc/nixos` ディレクトリは `root` によって所有されており、`root` のみが書き込み可能です。そのため、もしあなたの flake がこのディレクトリにある場合、設定ファイルを更新するには `sudo` を使う必要があります。
 
 ```shell
 # flake.lockを更新する
 nix flake update
 
-# または、home-managerのような特定のinputのみを更新する：
+# または、home-manager のような特定の input のみを更新する
 nix flake update home-manager
 
-# 新しい設定をデプロイする（設定がデフォルトの/etc/nixosにある場合、後ろの --flake . は省略できます）
+# 更新を適用する（設定がデフォルトの /etc/nixos にある場合は、後ろの --flake . は省略可能です）
 sudo nixos-rebuild switch --flake .
 
-# または、一つのコマンドでflake.lockの更新と新しい設定のデプロイを同時に行う（これは "nix flake update" を先に実行するのと同じです）
+# または、一つのコマンドで flake.lock の更新と新しい設定のデプロイを同時に行う（これは "nix flake update" を先に実行するのと同じです）
 sudo nixos-rebuild switch --recreate-lock-file --flake .
 ```
 
-`nixos-rebuild switch`の実行中に`sha256 mismatch`のようなエラーが発生することがありますが、通常は`nix flake update`を実行して`flake.lock`を更新することで解決できます。
+`nixos-rebuild switch` の実行中に `sha256 mismatch` のようなエラーが発生することがありますが、通常は `nix flake update` を実行して `flake.lock` を更新することで解決できます。
