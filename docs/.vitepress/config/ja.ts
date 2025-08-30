@@ -70,7 +70,7 @@ export const ja = defineConfig({
             link: "/ja/nixos-with-flakes/update-the-system.md",
           },
           {
-            text: "パッケージのバージョン変更",
+            text: "パッケージのアップ・ダウングレード",
             link: "/ja/nixos-with-flakes/downgrade-or-upgrade-packages.md",
           },
           {
