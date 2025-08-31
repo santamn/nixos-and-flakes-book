@@ -19,7 +19,7 @@
   <img src="/nixos-bootloader.avif">
   <figcaption>
     <h4 align="center">
-      すべての履歴バージョンがブートオプションとしてリストアップされている様子
+      すべての過去のバージョンがブートオプションとしてリストアップされている様子
       <a href="https://discourse.nixos.org/t/how-to-make-uefis-grub2-menu-the-same-as-bioss-one/10074" target="_blank" rel="noopener noreferrer">
         NixOS Discourse - 10074
       </a>
