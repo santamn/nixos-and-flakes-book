@@ -206,7 +206,7 @@ nix run github:helix-editor/helix/master
 上記の Helix 公式による flake の最新バージョンを使う例がまさにこの機能を示しています。その他の多くの使用例は後ほどで触れますが、これから見ていく幾つかの例をあらかじめ挙げておきます:
 
 - [Home Manager入門](./start-using-home-manager.md): コミュニティの Home-Manager を依存関係として導入し、その flake が提供する機能を直接利用できるようにします
-- [パッケージのバージョン変更](./downgrade-or-upgrade-packages.md): 異なるバージョンの Nixpkgs を依存関係として導入し、さまざまなバージョンの Nixpkgs からパッケージを柔軟に選択できるようにします
+- [パッケージのアップ・ダウングレード](./downgrade-or-upgrade-packages.md): 異なるバージョンの Nixpkgs を依存関係として導入し、さまざまなバージョンの Nixpkgs からパッケージを柔軟に選択できるようにします
 
 ## その他の Flakes の参考資料
 

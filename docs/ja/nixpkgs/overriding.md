@@ -1,43 +1,21 @@
 # Overriding
 
-簡単に言えば、nixpkgs内のすべてのNixパッケージは`<pkg>.override {}`で一部のビルドパラメータをカスタマイズできます。これにより、指定したパラメータで新しいDerivationが生成されます。例：
+Nix では、`pkgs` ディレクトリ内の Nix パッケージを `override` 関数を使ってカスタマイズできます。この関数を使うことで独自のビルドパラメータを定義し、それらのパラメータを変更した新しい Derivation を生成できます。以下に具体例を示します:
 
 ```nix
-pkgs.fcitx5-rime.override {rimeDataPkgs = [
-    ./rime-data-flypy
-];}
+pkgs.fcitx5-rime.override { rimeDataPkgs = [ ./rime-data-flypy ]; }
 ```
 
-このNix式の実行結果は、`rimeDataPkgs`パラメータが`[./rime-data-flypy]`に上書きされた新しいDerivationです。他のパラメータは元の値が使われます。
+上記の例では、`fcitx5-rime` Derivation の `rimeDataPkgs` パラメータをカスタムパッケージ `rime-data-flypy` に置き換えています。これにより、`rimeDataPkgs` のみが変更された新しい Derivation が作成され、その他のパラメータは変更されずに保持されます。
 
-`fcitx5-rime`パッケージでどのパラメータが上書き可能か知りたい場合、いくつか方法があります：
+特定のパッケージでどのパラメータが上書き可能か知りたい場合、いくつか方法があります:
 
-1. GitHubのnixpkgsソースで直接確認：[fcitx5-rime.nix](https://github.com/NixOS/nixpkgs/blob/e4246ae1e7f78b7087dce9c9da10d28d3725025f/pkgs/tools/inputmethods/fcitx5/fcitx5-rime.nix)
-   1. 正しいブランチ（例：nixos-unstable）を選んで確認してください。
-2. `nix repl`で対話的に調べる：`nix repl -f '<nixpkgs>'`を起動し、`:e pkgs.fcitx5-rime`と入力すると、エディタでそのパッケージのソースが開き、全パラメータが確認できます。
+1. たとえば [fcitx5-rime.nix](https://github.com/NixOS/nixpkgs/blob/e4246ae1e7f78b7087dce9c9da10d28d3725025f/pkgs/tools/inputmethods/fcitx5/fcitx5-rime.nix) のように、GitHub の Nixpkgs リポジトリでソースコードを直接確認する。この場合は `nixos-unstable` など、自分が使っている適切なブランチを選ぶようにしてください。
+2. `nix repl -f '<nixpkgs>'` コマンドで Nix REPL を開き、`:e pkgs.fcitx5-rime` と入力する。こうすることで、デフォルトのエディタでパッケージのソースコードが表示され、すべてのパラメータを確認できます。`nix repl` の基本的な使い方を知りたい場合は、`:?` と入力してヘルプ情報を参照してください。
 
-上記の方法で`fcitx5-rime`パッケージの入力パラメータが分かります。これらは`override`で上書き可能です：
+これらの方法を使うことで、パッケージの入力パラメータを確認し `override` 関数で変更可能なパラメータを特定することができます。
 
-```nix
-{ lib, stdenv
-, fetchFromGitHub
-, pkg-config
-, cmake
-, extra-cmake-modules
-, gettext
-, fcitx5
-, librime
-, rime-data
-, symlinkJoin
-, rimeDataPkgs ? [ rime-data ]
-}:
-
-stdenv.mkDerivation rec {
-  ...
-}
-```
-
-パラメータの上書き以外にも、`overrideAttrs`で`stdenv.mkDerivation`で構築されたDerivationの属性を直接上書きできます。例として[pkgs.hello](https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/applications/misc/hello/default.nix)を見てみましょう。まずソースを確認：
+具体例として [pkgs.hello](https://github.com/NixOS/nixpkgs/blob/nixos-23.05/pkgs/applications/misc/hello/default.nix) のソースコードを見てみましょう:
 
 ```nix
 { callPackage
@@ -60,11 +38,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   doCheck = true;
 
-  # ......
+  # ...
 })
 ```
 
-ここで`pname`や`version`、`src`、`doCheck`などの属性は`overrideAttrs`で上書きできます。例：
+この例では `pname`, `version`, `src`, `doCheck` はすべて `overrideAttrs` を使って上書きすることができます:
 
 ```nix
 helloWithDebug = pkgs.hello.overrideAttrs (finalAttrs: previousAttrs: {
@@ -72,9 +50,9 @@ helloWithDebug = pkgs.hello.overrideAttrs (finalAttrs: previousAttrs: {
 });
 ```
 
-この例では、`helloWithDebug`は`doCheck`が`false`に変更された新しいDerivationです。他のパラメータは元の値が使われます。
+上記のコードでは、`overrideAttrs` を使って `doCheck` のみを上書きし、他の attribute は変更しないようにしています。
 
-また、パッケージソースで定義されたパラメータ以外にも、`overrideAttrs`で`stdenv.mkDerivation`内部のデフォルトパラメータも上書きできます。例：
+`overrideAttrs` を使用すると、`stdenv.mkDerivation` で定義されているデフォルトの attribute の一部を上書きすることもできます:
 
 ```nix
 helloWithDebug = pkgs.hello.overrideAttrs (finalAttrs: previousAttrs: {
@@ -82,8 +60,8 @@ helloWithDebug = pkgs.hello.overrideAttrs (finalAttrs: previousAttrs: {
 });
 ```
 
-内部パラメータの詳細は、`nix repl -f '<nixpkgs>'`で`:e stdenv.mkDerivation`と入力してソースを確認してください。
+この例では、`hello` のソースコードではなく `stdenv.mkDerivation` で定義されている `separateDebugInfo` attribute をオーバーライドしています。
 
-## 参考
+`stdenv.mkDerivation` で定義されているすべての attribute を確認するには、`nix repl -f '<nixpkgs>'` を実行して `:e stdenv.mkDerivation` と入力し、ソースコードを表示してください。
 
-- [Chapter 4. Overriding - nixpkgs Manual](https://nixos.org/manual/nixpkgs/stable/#chap-overrides)
+これにより、デフォルトのエディタでソースコードが開きます。`nix repl` にまだ慣れていない方は、`:?` と入力してヘルプ情報を確認してください。
