@@ -2,7 +2,7 @@
 
 Nix 言語の基本的な使い方を理解したら、Nix 言語を使って NixOS システムを設定し始めることができます。NixOS の標準設定ファイルは `/etc/nixos/configuration.nix` にあり、タイムゾーン、言語、キーボードレイアウト、ネットワーク、ユーザー、ファイルシステム、起動項目、デスクトップ環境など、システムのすべての宣言的設定が含まれています。
 
-システムの変更を再現可能な方法で行いたい場合（これが最も推奨される方法です）、`/etc/nixos/configuration.nix` ファイルを手動で変更し、`sudo nixos-rebuild switch` コマンドを実行して設定を適用する必要があります。このコマンドは、設定ファイルに基づいて新しいシステム環境を生成し、その新しい環境をデフォルトの環境として設定します。同時に、前のシステム環境は保持され、grub の起動項目に追加されるため、新しい環境が起動できなくてもいつでも古い環境にロールバックできます。
+システムの変更を再現可能な方法で行いたい場合（これが最も推奨される方法です）、`/etc/nixos/configuration.nix` ファイルを手動で変更し、`sudo nixos-rebuild switch` コマンドを実行して設定を適用する必要があります。このコマンドは、設定ファイルに基づいて新しいシステム環境を生成し、その新しい環境をデフォルトの環境として設定します。同時に、前のシステム環境は保持され、GRUB の起動項目に追加されるため、新しい環境が起動できなくてもいつでも古い環境にロールバックできます。
 
 `/etc/nixos/configuration.nix` は従来の Nix の設定方法である一方で、`nix-channel` で設定されたデータソースに依存し、バージョンロックの仕組みがないため、実際にはシステムの再現性を保証できません。Flakes を使えばシステムの再現性が保証され、システムの設定を簡単に管理できるので、こちらの方がより良いでしょう。
 
@@ -12,7 +12,7 @@ Nix 言語の基本的な使い方を理解したら、Nix 言語を使って Ni
 
 `/etc/nixos/configuration.nix` は、NixOS を設定するためのデフォルトかつ古典的な方法です。Flakes のような高度な機能はありませんが、今でも広く使われており、柔軟なシステム設定が可能です。
 
-ここでは、ssh を有効にし、ユーザー `ryan` を追加する例を紹介します。`/etc/nixos/configuration.nix` に次の内容を追加してください：
+ここでは、SSH を有効にし、ユーザー `ryan` を追加する例を紹介します。`/etc/nixos/configuration.nix` に次の内容を追加してください：
 
 ```nix{14-38}
 # この設定ファイルを編集して、システムにインストールするものを定義します。
@@ -48,7 +48,7 @@ Nix 言語の基本的な使い方を理解したら、Nix 言語を使って Ni
     enable = true;
     settings = {
       X11Forwarding = true;
-      PermitRootLogin = "no"; # rootログインを無効にする
+      PermitRootLogin = "no";         # root ログインを無効にする
       PasswordAuthentication = false; # パスワードログインを無効にする
     };
     openFirewall = true;
@@ -58,7 +58,7 @@ Nix 言語の基本的な使い方を理解したら、Nix 言語を使って Ni
 }
 ```
 
-この設定では、openssh サービスを有効化し、ユーザー `ryan` に SSH 公開鍵を追加し、パスワードログインを無効にしています。
+この設定では、OpenSSH サービスを有効化し、ユーザー `ryan` に SSH 公開鍵を追加し、パスワードログインを無効にしています。
 
 設定を反映させるには、`sudo nixos-rebuild switch` を実行してください。このコマンドで変更が適用され、新しいシステム環境が生成されてデフォルトとして設定されます。以降は SSH キーでログインできるようになります。
 
@@ -71,7 +71,7 @@ Nix 言語の基本的な使い方を理解したら、Nix 言語を使って Ni
 - Googleなどの検索エンジンを使って例えば「Chrome NixOS」と検索すると、Chrome に関する NixOS 関連の情報を見つけられます
 - [NixOS Options Search](https://search.nixos.org/options) でキーワード検索ができます
 - システム全体の設定は [NixOS Manual の Configuration セクション](https://nixos.org/manual/nixos/unstable/index.html#ch-configuration) も参考になります
-- GitHubの [nixpkgs](https://github.com/NixOS/nixpkgs) リポジトリで直接キーワード検索し、該当するソースコードを読むのも有効です
+- GitHub の [nixpkgs](https://github.com/NixOS/nixpkgs) リポジトリで直接キーワード検索し、該当するソースコードを読むのも有効です
 
 ## 参考
 
