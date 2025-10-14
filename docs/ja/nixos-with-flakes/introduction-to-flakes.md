@@ -29,11 +29,11 @@ Flakes について詳しく調べた結果は以下の通りです:
 - [Flakes Are Such an Obviously Good Thing - Graham Christensen](https://grahamc.com/blog/flakes-are-an-obviously-good-thing/): Flakes の利点を強調しつつ設計・開発面での改善点を述べた記事
 - [ teaching Nix 3 CLI and Flakes #281 - nix.dev](https://github.com/NixOS/nix.dev/issues/281): nix.dev において Nix 3.0 の CLI と Flakes を扱うべきかという Issue で、結論としては nix.dev で不安定な機能を推奨すべきではないとしている
 
-これらの情報を踏まえると、Flakes は今後2年以内に安定化される可能性もありますが、それには破壊的変更が伴うかもしれません。
+これらの情報を踏まえると、Flakes は今後2年以内に安定化される可能性がありますが、それには破壊的変更が伴うかもしれません。
 
 ## 新 CLI とこれまでの CLI
 
-Nix では 2020 年に `nix-command` と `flakes` という2つの実験的機能が導入されました。これらは新しいコマンドラインインターフェース（新 CLI）や標準化された Nix パッケージの構造定義（Flakes）、そして `flake.lock`（cargo や npm におけるバージョンロックファイルのようなもの）などをもたらしました。2024年2月1日時点ではまだ実験段階ですが、これらが Nix の利便性を大きく高めることから Nix コミュニティで広く使われています。
+Nix では 2020 年に `nix-command` と `flakes` という2つの実験的機能が導入されました。これらは新しいコマンドラインインターフェース（新 CLI）や標準化された Nix パッケージの構造定義（Flakes）、そして `flake.lock`（Cargo や npm におけるバージョンロックファイルのようなもの）などをもたらしました。2024年2月1日時点ではまだ実験段階ですが、これらが Nix の利便性を大きく高めることから Nix コミュニティで広く使われています。
 
 現在の Nix の新 CLI（`nix-command` の実験的機能）は 同じく実験的な機能である Flakes と密接に結びついています。両者を明確に分離する取り組みも行われていますが、Flakes を使うには基本的に新 CLI の利用が必須です。本書は NixOS と Flakes の初心者向けガイドなので、Flakes が依存する新 CLI と従来の CLI の違いも紹介します。
 
