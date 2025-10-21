@@ -37,13 +37,13 @@ Nix では 2020 年に `nix-command` と `flakes` という2つの実験的機�
 
 現在の Nix の新 CLI（`nix-command` の実験的機能）は 同じく実験的な機能である Flakes と密接に結びついています。両者を明確に分離する取り組みも行われていますが、Flakes を使うには基本的に新 CLI の利用が必須です。本書は NixOS と Flakes の初心者向けガイドなので、Flakes が依存する新 CLI と従来の CLI の違いも紹介します。
 
-ここでは、新 CLI と Flakes（`nix-command`, `flakes`）を使う上でもはや不要となった従来の Nix CLI とその関連概念をまとめています。調べる際は、対応する新 CLI コマンドに置き換えてください（ `nix-collect-garbage` だけは代替コマンドがないので例外とします）：
+ここでは、新 CLI と Flakes（`nix-command`, `flakes`）を使う上でもはや不要となった従来の Nix CLI とその関連概念をまとめています。調べる際は、対応する新 CLI コマンドに置き換えてください（`nix-collect-garbage` だけは代替コマンドがないので例外とします）:
 
-1. `nix-channel`: `nix-channel` は、nixpkgs のような input (訳註: Flakeが依存する外部の Flake のこと) のバージョンを管理するための仕組みで、これは stable や unstable といったチャネル[^4]を通じて行われます。これは apt や yum, pacman といったパッケージマネージャーがパッケージリストを管理する方法と似ています。Nix 言語において `<nixpkgs>` という特別なパスが利用できるのは、この `nix-channel` の仕組みによるものです。
-   1. `nix-channel` が担っていた、対話的な CLI (e.g. `nix run nixpkgs#hello`) で使うための"特にバージョン指定していないシステム共通の nixpkgs" を提供する役割は、Flake Registry (`nix registry`) によって代替されます。`flake.nix` を使う場合、入力のバージョンは `flake.nix` そのもので管理されます。
-   2. Flakes では nixpkgs や他の input のバージョンをグローバルな状態として管理するのではなく、`flake.nix` の `inputs` セクションで各 Flake ごとに管理します。
+1. `nix-channel`: `nix-channel` は、Nixpkgs のような input (訳註: Flake が依存する外部の Flake のこと) のバージョンを管理するための仕組みで、これは stable や unstable といったチャネル[^4]を通じて行われます。これは apt や yum, pacman といったパッケージマネージャーがパッケージリストを管理する方法と似ています。Nix 言語において `<nixpkgs>` という特別なパスが利用できるのは、この `nix-channel` の仕組みによるものです。
+   1. `nix-channel` が担っていた、対話的な CLI (e.g. `nix run nixpkgs#hello`) で使うための"特にバージョン指定していないシステム共通の Nixpkgs"を提供する役割は、Flake Registry (`nix registry`) によって代替されます。`flake.nix` を使う場合、入力のバージョンは `flake.nix` そのもので管理されます。
+   2. Flakes では Nixpkgs や他の input のバージョンをグローバルな状態として管理するのではなく、`flake.nix` の `inputs` セクションで各 Flake ごとに管理します。
 2. `nix-env`: `nix-env` は従来の Nix でユーザー環境のパッケージ管理の中核を担うコマンドです。
-   1. `nix-channel` で追加したデータソースからパッケージをインストールするため、インストールされるパッケージのバージョンはチャンネルに依存します。`nix-env` でインストールしたパッケージは Nix の宣言的設定に自動では記録されず、Nix の設定の制御下から外れてしまうので、他のマシンで再現するのがとても困難になります。また `nix-env` でインストールしたパッケージについては attribute name が保存されないため、アップデートの際には nixpkgs の全てのパッケージをスキャンしなおす必要があり、処理に時間がかかります。また元の attribute name の変更によって予期せぬ結果になることもあります。そのため、このコマンドを直接利用するのは推奨しません。
+   1. `nix-channel` で追加したデータソースからパッケージをインストールするため、インストールされるパッケージのバージョンはチャンネルに依存します。`nix-env` でインストールしたパッケージは Nix の宣言的設定に自動では記録されず、Nix の設定の制御下から外れてしまうので、他のマシンで再現するのがとても困難になります。また `nix-env` でインストールしたパッケージについては attribute name が保存されないため、アップデートの際には Nixpkgs の全てのパッケージをスキャンしなおす必要があり、処理に時間がかかります。また元の attribute name の変更によって予期せぬ結果になることもあります。そのため、このコマンドを直接利用するのは推奨しません。
    2. 新 CLI では対応するコマンドは `nix profile` ですが、個人的には初心者にはおすすめしません。
 3. `nix-shell`: `nix-shell` では一時的なシェル環境を作成でき、開発やテストに便利です。
    1. 新 CLI では `nix develop`, `nix shell`, `nix run` の3つのサブコマンドに分かれています。これらについては [NixOS における開発環境](../development/intro.md) の章で詳しく解説します。
